@@ -1,0 +1,18 @@
+name: baryonic-backend-task
+services:
+  stock_generator:
+    container_name: generator
+    build:
+      context: ./generator
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6371:6379"
