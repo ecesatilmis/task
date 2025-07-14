@@ -16,3 +16,70 @@ services:
     image: redis:latest
     ports:
       - "6371:6379"
+
+  postgres:
+    container_name: postgres
+    image: postgres:15
+    environment:
+      - PG_USER=postgres
+      - PG_PASSWORD=password
+      - PG_DB=stocks
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    
+  subscriber:
+    container_name: subscriber
+    build:
+      context: ./subscriber
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+      - postgres
+      - centrifugo
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PG_HOST=postgres
+      - PG_PORT=5432
+      - PG_DB=stocks
+      - PG_USER=postgres
+      - PG_PASSWORD=password
+      - CENTRIFUGO_API_URL=http://centrifugo:8000/api
+      - CENTRIFUGO_API_KEY=centrifugo-api-key
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      - PG_HOST=postgres
+      - PG_PORT=5432
+      - PG_DB=stocks
+      - PG_USER=postgres
+      - PG_PASSWORD=password
+
+  centrifugo:
+    container_name: centrifugo
+    image: centrifugo/centrifugo
+    volumes:
+      - ./centrifugo:/centrifugo
+    command: centrifugo -c /centrifugo/config.json
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: nginx:alpine
+    container_name: frontend
+    volumes:
+      - ./client/index.html:/usr/share/nginx/html/index.html
+    ports:
+      - "8080:80"
+

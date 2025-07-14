@@ -1,0 +1,26 @@
+{
+  "v3_use_offset": true,
+  "allowed_origins": ["http://localhost:8080"],
+  "anonymous": true,
+  "publish": true,
+  "api_key": "centrifugo-api-key",
+  "subscribe_to_personal": false,
+  "history_size": 50,
+  "history_lifetime": 300,
+  "namespaces": [
+    {
+      "name": "NASDAQ",
+      "publish": true,
+      "anonymous": true,
+      "history_size": 50,
+      "history_lifetime": 300
+    },
+    {
+      "name": "NYSE",
+      "publish": true,
+      "anonymous": true,
+      "history_size": 50,
+      "history_lifetime": 300
+    }
+  ]
+}
