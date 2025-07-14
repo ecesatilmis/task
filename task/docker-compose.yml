@@ -21,9 +21,9 @@ services:
     container_name: postgres
     image: postgres:15
     environment:
-      - PG_USER=postgres
-      - PG_PASSWORD=password
-      - PG_DB=stocks
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=stocks
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
@@ -41,15 +41,13 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - PG_HOST=postgres
-      - PG_PORT=5432
-      - PG_DB=stocks
-      - PG_USER=postgres
-      - PG_PASSWORD=password
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=stocks
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
       - CENTRIFUGO_API_URL=http://centrifugo:8000/api
       - CENTRIFUGO_API_KEY=centrifugo-api-key
-    ports:
-      - "5432:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
   backend:
@@ -60,11 +58,11 @@ services:
     depends_on:
       - postgres
     environment:
-      - PG_HOST=postgres
-      - PG_PORT=5432
-      - PG_DB=stocks
-      - PG_USER=postgres
-      - PG_PASSWORD=password
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=stocks
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
 
   centrifugo:
     container_name: centrifugo

@@ -15,11 +15,11 @@ CENTRIFUGO_API_URL = os.getenv("CENTRIFUGO_API_URL", "http://localhost:8000/api"
 CENTRIFUGO_API_KEY = os.getenv("CENTRIFUGO_API_KEY", "centrifugo-api-key")
 
 # PostgreSQL config
-PG_HOST = os.getenv("PG_HOST", "localhost")
-PG_PORT = int(os.getenv("PG_PORT", 5432))
-PG_DB = os.getenv("PG_DB", "stocks")
-PG_USER = os.getenv("PG_USER", "postgres")
-PG_PASSWORD = os.getenv("PG_PASSWORD", "password")
+PG_HOST = os.getenv("POSTGRES_HOST", "localhost")
+PG_PORT = int(os.getenv("POSTGRES_PORT", 5432))
+PG_DB = os.getenv("POSTGRES_DB", "stocks")
+PG_USER = os.getenv("POSTGRES_USER", "postgres")
+PG_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
 
 # Global batch buffer
 batch_buffer = []

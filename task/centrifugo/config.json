@@ -1,26 +1,28 @@
 {
-  "v3_use_offset": true,
-  "allowed_origins": ["http://localhost:8080"],
-  "anonymous": true,
-  "publish": true,
-  "api_key": "centrifugo-api-key",
-  "subscribe_to_personal": false,
-  "history_size": 50,
-  "history_lifetime": 300,
-  "namespaces": [
-    {
-      "name": "NASDAQ",
-      "publish": true,
-      "anonymous": true,
-      "history_size": 50,
-      "history_lifetime": 300
-    },
-    {
-      "name": "NYSE",
-      "publish": true,
-      "anonymous": true,
-      "history_size": 50,
-      "history_lifetime": 300
-    }
-  ]
+  "client": {
+    "allow_anonymous_connect_without_token": true,  
+    "allowed_origins": ["http://localhost:8080"]
+  },
+  "channel": {
+    "namespaces": [
+      {
+        "name": "NASDAQ",
+        "allow_subscribe_for_anonymous": true,
+        "allow_publish_for_anonymous": true,
+        "history_size": 50,
+        "history_ttl": "300s"
+
+      },
+      {
+        "name": "NYSE",
+        "allow_subscribe_for_anonymous": true,
+        "allow_publish_for_anonymous": true,
+        "history_size": 50,
+        "history_ttl": "300s"
+      }
+    ]
+  },
+  "http_api": {
+    "key": "centrifugo-api-key"
+  }
 }
