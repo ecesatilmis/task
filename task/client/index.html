@@ -10,12 +10,12 @@
   </style>
 </head>
 <body>
-  <h2>📈 Live Stock Prices</h2>
+  <h2>Live Stock Prices</h2>
   <div id="live">
     <ul id="live-updates"></ul>
   </div>
 
-  <h2>📊 Historical Price Query</h2>
+  <h2>Historical Price Query</h2>
   <form id="query-form">
     <label>Stock Name:
       <input type="text" id="stock-name" required>
@@ -76,8 +76,17 @@
       if (end) params.append("end_time", new Date(end).toISOString());
 
       try {
-        const res = await fetch(`http://localhost:5000/api/prices/${stock}?${params.toString()}`);
+        const res = await fetch(`http://localhost:5050/api/prices/${stock}?${params.toString()}`);
         const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.detail || `HTTP error ${res.status}`);
+        }
+
+        if (!Array.isArray(data)) {
+          throw new Error("Unexpected response format");
+        }
+
         results.innerHTML = "";
 
         if (data.length === 0) {
@@ -90,7 +99,7 @@
           });
         }
       } catch (err) {
-        results.innerHTML = `<li>Error fetching data: ${err}</li>`;
+        results.innerHTML = `<li>Error fetching data: ${err.message}</li>`;
       }
     });
   </script>

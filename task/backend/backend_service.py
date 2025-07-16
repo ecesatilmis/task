@@ -3,17 +3,24 @@ from typing import List, Optional
 from pydantic import BaseModel
 import psycopg2
 import os
+import traceback
 from datetime import datetime
-
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True, 
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # PostgreSQL config
-PG_HOST = os.getenv("PG_HOST", "localhost")
-PG_PORT = int(os.getenv("PG_PORT", 5432))
-PG_DB = os.getenv("PG_DB", "stocks")
-PG_USER = os.getenv("PG_USER", "postgres")
-PG_PASSWORD = os.getenv("PG_PASSWORD", "password")
+PG_HOST = os.getenv("POSTGRES_HOST", "localhost")
+PG_PORT = int(os.getenv("POSTGRES_PORT", 5432))
+PG_DB = os.getenv("POSTGRES_DB", "stocks")
+PG_USER = os.getenv("POSTGRES_USER", "postgres")
+PG_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
 
 
 class PricePoint(BaseModel):
@@ -66,6 +73,8 @@ def get_prices(
 
         return [PricePoint(timestamp=row[0], price=float(row[1])) for row in rows]
     except Exception as e:
+        print("Exception in get_prices endpoint:", e)
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -48,8 +48,6 @@ services:
       - POSTGRES_PASSWORD=password
       - CENTRIFUGO_API_URL=http://centrifugo:8000/api
       - CENTRIFUGO_API_KEY=centrifugo-api-key
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
   backend:
     container_name: backend
     build:
@@ -63,6 +61,8 @@ services:
       - POSTGRES_DB=stocks
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+    ports:
+     - "5050:5050" 
 
   centrifugo:
     container_name: centrifugo
