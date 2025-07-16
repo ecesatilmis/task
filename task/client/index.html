@@ -36,8 +36,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/centrifuge@5.0.1/dist/centrifuge.min.js"></script>
   <script>
-    // === Centrifugo WebSocket connection ===
-    const centrifuge = new Centrifuge("ws://localhost:8000/connection/websocket");
+    // WebSocket (Centrifugo)
+    const centrifuge = new Centrifuge("ws://" + location.host + "/connection/websocket");
 
     // Subscribe to both NASDAQ and NYSE
     const channels = ["NASDAQ", "NYSE"];
@@ -59,7 +59,7 @@
 
     centrifuge.connect();
 
-    // === Historical Query ===
+    // Historical Query
     const form = document.getElementById("query-form");
     const results = document.getElementById("history-results");
 
@@ -76,7 +76,8 @@
       if (end) params.append("end_time", new Date(end).toISOString());
 
       try {
-        const res = await fetch(`http://localhost:5050/api/prices/${stock}?${params.toString()}`);
+        // API (Backend)
+        const res = await fetch(`/api/prices/${stock}?${params.toString()}`);
         const data = await res.json();
 
         if (!res.ok) {

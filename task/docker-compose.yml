@@ -26,8 +26,8 @@ services:
       - POSTGRES_DB=stocks
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     
   subscriber:
     container_name: subscriber
@@ -61,8 +61,8 @@ services:
       - POSTGRES_DB=stocks
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-    ports:
-     - "5050:5050" 
+    expose:
+     - "5050" 
 
   centrifugo:
     container_name: centrifugo
@@ -70,14 +70,19 @@ services:
     volumes:
       - ./centrifugo:/centrifugo
     command: centrifugo -c /centrifugo/config.json
-    ports:
-      - "8000:8000"
+    expose: 
+      - "8000"
 
-  frontend:
+  nginx:
     image: nginx:alpine
-    container_name: frontend
-    volumes:
-      - ./client/index.html:/usr/share/nginx/html/index.html
+    container_name: nginx
     ports:
-      - "8080:80"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./client:/usr/share/nginx/html:ro 
+    depends_on:
+      - backend
+      - centrifugo
+
 

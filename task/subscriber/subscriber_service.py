@@ -10,7 +10,7 @@ REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 
 # Centrifugo config
-CENTRIFUGO_API_URL = os.getenv("CENTRIFUGO_API_URL", "http://localhost:8000/api")
+CENTRIFUGO_API_URL = os.getenv("CENTRIFUGO_API_URL", "http://centrifugo:8000/api")
 CENTRIFUGO_API_KEY = os.getenv("CENTRIFUGO_API_KEY", "centrifugo-api-key")
 
 # PostgreSQL config
