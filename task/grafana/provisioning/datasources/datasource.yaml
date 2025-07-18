@@ -1,0 +1,15 @@
+# Defines the PostgreSQL connection
+
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432             # Docker service name and port
+    database: stocks               # POSTGRES_DB from docker-compose
+    user: postgres                 # POSTGRES_USER
+    secureJsonData:
+      password: password           # POSTGRES_PASSWORD
+    jsonData:
+      sslmode: disable             # Disables SSL, okay for local dev

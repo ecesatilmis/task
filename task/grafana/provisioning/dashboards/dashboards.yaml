@@ -1,0 +1,13 @@
+# Tells Grafana where to find dashboards
+
+apiVersion: 1
+
+providers:
+  - name: 'vector_dashboards'         
+    orgId: 1
+    folder: ''                        # Root folder in Grafana
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

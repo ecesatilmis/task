@@ -1,0 +1,112 @@
+{
+  "uid": "vector-dashboard",
+  "title": "Vector Metrics Dashboard",
+  "timezone": "browser",
+  "schemaVersion": 37,
+  "version": 1,
+  "refresh": "10s",
+  "tags": ["vector", "metrics"],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Insert Latency Over Time",
+      "datasource": "PostgreSQL",
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT timestamp AS time, value FROM metrics WHERE metric = 'insert_latency' ORDER BY timestamp"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Current Insert Latency",
+      "datasource": "PostgreSQL",
+      "targets": [
+        {
+          "refId": "B",
+          "format": "time_series",
+          "rawSql": "SELECT NOW() AS time, value FROM metrics WHERE metric = 'insert_latency' ORDER BY timestamp DESC LIMIT 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 9 }
+    },
+    {
+      "type": "stat",
+      "title": "Total Events Collected",
+      "datasource": "PostgreSQL",
+      "targets": [
+        {
+          "refId": "C",
+          "format": "table",
+          "rawSql": "SELECT NOW() AS time, COUNT(*) AS value FROM metrics WHERE metric = 'insert_latency'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 9 }
+    },
+    {
+      "type": "stat",
+      "title": "Max Insert Latency",
+      "datasource": "PostgreSQL",
+      "targets": [
+        {
+          "refId": "D",
+          "format": "table",
+          "rawSql": "SELECT NOW() AS time, MAX(value) AS value FROM metrics WHERE metric = 'insert_latency'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 9 }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h"]
+  }
+}

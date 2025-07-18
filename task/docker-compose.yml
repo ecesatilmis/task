@@ -84,6 +84,7 @@ services:
     depends_on:
       - backend
       - centrifugo
+      - grafana
 
   vector:
     image: timberio/vector:0.48.0-alpine
@@ -95,4 +96,21 @@ services:
       - subscriber
       - postgres
     command: ["-c", "/etc/vector/vector.yaml"]
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - postgres
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost/grafana/
+    volumes:
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    expose:
+      - "3000"
+
 
