@@ -4,6 +4,9 @@ import threading
 import time
 import requests
 import psycopg2
+import json
+import sys
+from datetime import datetime
 
 # Redis config
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
@@ -55,6 +58,7 @@ def insert_batch_to_postgres():
             to_insert = batch_buffer[:]
             batch_buffer.clear()
 
+        start = time.time()
         try:
             conn = psycopg2.connect(
                 host=PG_HOST, port=PG_PORT, dbname=PG_DB, user=PG_USER, password=PG_PASSWORD
@@ -67,10 +71,28 @@ def insert_batch_to_postgres():
             conn.commit()
             cur.close()
             conn.close()
-            print(f"Inserted {len(to_insert)} records.")
-        except Exception as e:
-            print(f"PostgreSQL insert error: {e}")
+            elapsed = time.time() - start
 
+            # Successful insert log (all fields present)
+            print(json.dumps({
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "metric": "insert_latency",
+                "value": elapsed,
+                "unit": "seconds",
+                "event": "insert_success",
+                "service": "subscriber"
+            }), file=sys.stdout)
+
+        except Exception as e:
+            # Error log (all fields present)
+            print(json.dumps({
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "metric": "",
+                "value": 0,
+                "unit": "",
+                "event": "postgres_insert_failed",
+                "service": "subscriber"
+            }), file=sys.stdout)
 
 def message_handler(msg):
     try:
@@ -105,11 +127,11 @@ def start_subscriber():
     def listen():
         while True:
             try:
-                print("Connecting to Redis pubsub...")
+                # print("Connecting to Redis pubsub...")
                 r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=False)
                 pubsub = r.pubsub()
                 pubsub.subscribe(**{"NASDAQ": message_handler, "NYSE": message_handler})
-                print("Subscribed to NASDAQ and NYSE")
+                # print("Subscribed to NASDAQ and NYSE")
 
                 for message in pubsub.listen():
                     if message['type'] == 'message':
@@ -125,20 +147,17 @@ def start_subscriber():
     # Start the resilient subscriber thread
     threading.Thread(target=listen, daemon=True).start()
 
-
-
 def wait_for_redis(retries=5):
     for i in range(retries):
         try:
             r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
             r.ping()
-            print("Redis is ready.")
+            # print("Redis is ready.")
             return True
         except redis.exceptions.ConnectionError:
             print(f"[Retry {i+1}] Waiting for Redis...")
             time.sleep(2)
     return False
-
 
 if __name__ == "__main__":
     # Start PostgreSQL batch insert thread

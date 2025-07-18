@@ -85,4 +85,14 @@ services:
       - backend
       - centrifugo
 
+  vector:
+    image: timberio/vector:0.48.0-alpine
+    container_name: vector
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
+    depends_on:
+      - subscriber
+      - postgres
+    command: ["-c", "/etc/vector/vector.yaml"]
 

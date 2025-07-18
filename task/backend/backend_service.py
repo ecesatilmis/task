@@ -27,7 +27,6 @@ class PricePoint(BaseModel):
     timestamp: datetime
     price: float
 
-
 def get_db_connection():
     return psycopg2.connect(
         host=PG_HOST,
@@ -36,7 +35,6 @@ def get_db_connection():
         user=PG_USER,
         password=PG_PASSWORD,
     )
-
 
 @app.get("/api/prices/{stock_name}", response_model=List[PricePoint])
 def get_prices(
@@ -76,7 +74,6 @@ def get_prices(
         print("Exception in get_prices endpoint:", e)
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/api/average/{stock_name}")
 def get_average(

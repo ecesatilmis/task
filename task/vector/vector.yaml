@@ -1,0 +1,24 @@
+sources:
+  subscriber_logs:
+    type: docker_logs
+    include_containers:
+      - subscriber
+
+transforms:
+  parse_json:
+    type: remap
+    inputs:
+      - subscriber_logs
+    source: |
+      . = parse_json!(.message)
+
+sinks:
+  postgres_metrics:
+    type: postgres
+    inputs:
+      - parse_json
+    endpoint: "postgres://postgres:password@postgres:5432/stocks"
+    table: "metrics"
+   
+
+

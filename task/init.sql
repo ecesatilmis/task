@@ -7,3 +7,12 @@ CREATE TABLE IF NOT EXISTS stock_prices (
 
 -- Index to improve time-based queries for individual stocks
 CREATE INDEX IF NOT EXISTS idx_stock_prices_ts_name ON stock_prices (stock_name, timestamp DESC);
+
+CREATE TABLE  IF NOT EXISTS metrics (
+  timestamp timestamptz NOT NULL,
+  service text,
+  event text,
+  metric text,
+  value double precision,
+  unit text
+);
