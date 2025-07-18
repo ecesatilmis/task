@@ -28,11 +28,11 @@ _The diagram above illustrates the target architecture for Step 1. The final sys
 
 ### 1. Start all services
 
-'''
+```
 
 docker compose up --build
 
-'''
+```
 
 This will build and start all containers.
 
@@ -42,12 +42,12 @@ This will build and start all containers.
 
 Open your browser and navigate to:
 
-'''
+```arduino
 
 http://localhost/
 
 
-'''
+```
 
 - Grafana Dashboard for Metrics Visualization:
 
@@ -55,15 +55,17 @@ Grafana visualizes metrics collected by Vector.dev and stored in PostgreSQL.
 
 Grafana is available at:
 
-'''
+```arduino
 
 http://localhost/grafana
 
 
-'''
+```
+
 Login Credentials:
-Username: admin
-Password: admin
+
+- Username: admin
+- Password: admin
 
 
 ## Observability
