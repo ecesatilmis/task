@@ -42,7 +42,7 @@ This will build and start all containers.
 
 Open your browser and navigate to:
 
-'''arduino
+'''
 
 http://localhost/
 
@@ -55,7 +55,7 @@ Grafana visualizes metrics collected by Vector.dev and stored in PostgreSQL.
 
 Grafana is available at:
 
-'''arduino
+'''
 
 http://localhost/grafana
 
