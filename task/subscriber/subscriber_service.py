@@ -75,7 +75,7 @@ def insert_batch_to_postgres():
 
             # Successful insert log (all fields present)
             print(json.dumps({
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now().isoformat() + "Z",
                 "metric": "insert_latency",
                 "value": elapsed,
                 "unit": "seconds",
@@ -86,7 +86,7 @@ def insert_batch_to_postgres():
         except Exception as e:
             # Error log (all fields present)
             print(json.dumps({
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now().isoformat() + "Z",
                 "metric": "",
                 "value": 0,
                 "unit": "",
@@ -144,7 +144,7 @@ def start_subscriber():
                 print(f"[Subscriber] Unexpected error: {e}")
                 time.sleep(3)
 
-    # Start the resilient subscriber thread
+    # Run that blocking Redis loop in the background. Let the rest of my code do other things like insert to DB."
     threading.Thread(target=listen, daemon=True).start()
 
 def wait_for_redis(retries=5):
@@ -161,6 +161,7 @@ def wait_for_redis(retries=5):
 
 if __name__ == "__main__":
     # Start PostgreSQL batch insert thread
+    # It runs independently, and constantly looks for new data to insert.
     threading.Thread(target=insert_batch_to_postgres, daemon=True).start()
 
     if not wait_for_redis():

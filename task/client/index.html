@@ -32,6 +32,7 @@
   <div id="history">
     <h3>Results:</h3>
     <ul id="history-results"></ul>
+    <h4 id="average-price"></h4>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/centrifuge@5.0.1/dist/centrifuge.min.js"></script>
@@ -62,12 +63,14 @@
     // Historical Query
     const form = document.getElementById("query-form");
     const results = document.getElementById("history-results");
+    const avgDisplay = document.getElementById("average-price");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      results.innerHTML = "<li>Loading...</li>";
+      results.innerHTML = "<li>Loading price data...</li>";
+      avgDisplay.textContent = "Calculating average...";
 
-      const stock = document.getElementById("stock-name").value;
+      const stock = document.getElementById("stock-name").value.trim();
       const start = document.getElementById("start-time").value;
       const end = document.getElementById("end-time").value;
 
@@ -76,31 +79,38 @@
       if (end) params.append("end_time", new Date(end).toISOString());
 
       try {
-        // API (Backend)
-        const res = await fetch(`/api/prices/${stock}?${params.toString()}`);
-        const data = await res.json();
+        // Fetch price points
+        const pricesRes = await fetch(`/api/prices/${stock}?${params.toString()}`);
+        const pricesData = await pricesRes.json();
 
-        if (!res.ok) {
-          throw new Error(data.detail || `HTTP error ${res.status}`);
-        }
-
-        if (!Array.isArray(data)) {
-          throw new Error("Unexpected response format");
-        }
+        if (!pricesRes.ok) throw new Error(pricesData.detail || `HTTP error ${pricesRes.status}`);
 
         results.innerHTML = "";
 
-        if (data.length === 0) {
+        if (!Array.isArray(pricesData) || pricesData.length === 0) {
           results.innerHTML = "<li>No results found.</li>";
         } else {
-          data.forEach(point => {
+          pricesData.forEach(point => {
             const li = document.createElement("li");
             li.textContent = `$${point.price} at ${new Date(point.timestamp).toLocaleString()}`;
             results.appendChild(li);
           });
         }
+
+        // Fetch average price
+        const avgRes = await fetch(`/api/average/${stock}?${params.toString()}`);
+        const avgData = await avgRes.json();
+
+        if (!avgRes.ok) throw new Error(avgData.detail || `HTTP error ${avgRes.status}`);
+
+        if (avgData.average_price === null) {
+          avgDisplay.textContent = "No data to calculate average.";
+        } else {
+          avgDisplay.textContent = `Average Price: $${avgData.average_price.toFixed(2)}`;
+        }
       } catch (err) {
-        results.innerHTML = `<li>Error fetching data: ${err.message}</li>`;
+        results.innerHTML = `<li>Error: ${err.message}</li>`;
+        avgDisplay.textContent = "";
       }
     });
   </script>
