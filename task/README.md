@@ -1,6 +1,8 @@
 # Baryonic Space Backend Engineer Task
 
-A real-time and retrospective monitoring system for time-series built with Dockerized microservices. The system fetches real-time data streaming via pub/sub (Redis), stores it in PostgreSQL, and broadcasts updates to a frontend via Centrifugo, query API for historical data access. Metrics are collected using Vector.dev for observability.
+This project implements a real-time and retrospective monitoring system for time-series built with Dockerized microservices. The system simulates stock price streams, stores them for historical analysis, and broadcasts live updates to clients.
+
+The entire project is Dockerized and can be launched with a single command.
 
 ## Architecture
 
@@ -24,9 +26,73 @@ _The diagram above illustrates the target architecture for Step 1. The final sys
 
 ---
 
-## Getting Started
+## Implementation & Design Decisions
 
-### 1. Start all services
+### Generator
+
+- Provided service.
+- Publishes stock messages to NASDAQ and NYSE Redis channels.
+
+### Subscriber
+
+- Parses and buffers stock messages from Redis.
+- Inserts batched entries into PostgreSQL.
+- Forwards real-time updates to Centrifugo via HTTP API.
+- Emits structured JSON logs for Vector.dev observability.
+
+### Backend (FastAPI)
+
+- Implements:
+  - GET /api/prices/{stock_name} — fetches prices in a given time range.
+  - GET /api/average/{stock_name} — computes average price over time.
+
+### Centrifugo
+
+- Allows anonymous clients to subscribe to NASDAQ and NYSE channels.
+- Publishes real-time updates from subscriber.
+
+### Nginx
+
+- Proxies:
+  - /api/* → backend
+  - /connection/websocket → Centrifugo
+  - / → frontend 
+  - /grafana  → grafana dashboard
+- Handles CORS and HTTPS.
+
+### Vector.dev + Grafana
+
+- Vector collects logs from the subscriber container.
+- Transforms JSON logs to metrics (e.g., insert latency, errors).
+- Stores metrics in PostgreSQL.
+- Grafana reads metrics and visualizes service performance.
+
+## Project Diagram
+
+  ```sql
+  +-------------+        +--------+        +--------------+        +------------+
+  |  Generator  |──────▶ | Redis  |──────▶ |  Subscriber  |──────▶ | PostgreSQL |
+  +-------------+        +--------+        +--------------+        +------------+
+                                              │  ▲
+                                              │  │
+                                              ▼  │
+                                          Centrifugo
+                                              │
+                                          WebSocket
+                                              │
+                                        +-----------+
+                                        |  Frontend |
+                                        +-----------+
+
+                  Vector.dev ───▶ PostgreSQL (metrics) ◀── Grafana
+
+                            All proxied through: NGINX
+
+  ```
+
+## Setup & Run
+
+### 1. Build & Start the Project
 
 ```
 
@@ -39,53 +105,33 @@ This will build and start all containers.
 ### 2. Access the system
 
 - Frontend & API Access:
+  Open your browser and navigate to:
 
-Open your browser and navigate to:
+  ```arduino
 
-```arduino
-
-http://localhost/
+  http://localhost/
 
 
-```
+  ```
 
 - Grafana Dashboard for Metrics Visualization:
+  Grafana visualizes metrics collected by Vector.dev and stored in PostgreSQL.
+  Access it at:
 
-Grafana visualizes metrics collected by Vector.dev and stored in PostgreSQL.
+  ```arduino
 
-Grafana is available at:
-
-```arduino
-
-http://localhost/grafana
+  http://localhost/grafana
 
 
-```
+  ```
+  Login Credentials:
 
-Login Credentials:
-
-- Username: admin
-- Password: admin
-
+  - Username: admin
+  - Password: admin
 
 ## Observability
 
-The subscriber emits structured logs (JSON) with the latency (duration) of bulk inserts into PostgreSQL metrics, collected by vector and stored in PostgreSQL for analysis.
-
-
-## Environment Variables
-
-Set in docker-compose.yml:
-
-  ```
-
-  POSTGRES_HOST=postgres
-  POSTGRES_PORT=5432
-  POSTGRES_DB=stocks
-  POSTGRES_USER=postgres
-  POSTGRES_PASSWORD=password
-
-  ```
+The subscriber emits structured logs (JSON) with the latency (duration) of bulk inserts into PostgreSQL metrics, collected by vector and stored in PostgreSQL for analysis. Grafana dashboards visualize insert times.
 
 ## API Endpoints
 
@@ -116,4 +162,25 @@ Set in docker-compose.yml:
   );
   ```
 
+## Notes
 
+- Ports:
+  - Backend: 5050 → 5050
+  - Centrifugo: 8000 → 8000
+  - Grafana: 3000 → 3000
+  - Frontend: 8080 → 8080
+- Environment variables configured in docker-compose.yml.
+
+## Environment Variables
+
+Set in docker-compose.yml:
+
+  ```
+
+  POSTGRES_HOST=postgres
+  POSTGRES_PORT=5432
+  POSTGRES_DB=stocks
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=password
+
+  ```
