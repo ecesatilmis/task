@@ -105,29 +105,29 @@ This will build and start all containers.
 ### 2. Access the system
 
 - Frontend & API Access:
-  Open your browser and navigate to:
+  - Open your browser and navigate to:
 
-  ```arduino
+    ```arduino
 
-  http://localhost/
+    http://localhost/
 
 
-  ```
+    ```
 
 - Grafana Dashboard for Metrics Visualization:
-  Grafana visualizes metrics collected by Vector.dev and stored in PostgreSQL.
-  Access it at:
+  - Grafana visualizes metrics collected by Vector.dev and stored in PostgreSQL.
+  - Access it at:
 
-  ```arduino
+    ```arduino
 
-  http://localhost/grafana
+    http://localhost/grafana
 
 
-  ```
-  Login Credentials:
+    ```
+  - Login Credentials:
 
-  - Username: admin
-  - Password: admin
+    - Username: admin
+    - Password: admin
 
 ## Observability
 
