@@ -180,7 +180,7 @@ The subscriber emits structured logs (JSON) with the latency (duration) of bulk 
 
 ## Environment Variables
 
-The PostgreSQL service uses the following environment variables, set in the .env file or docker-compose.yaml:
+The PostgreSQL service uses the following environment variables, set in the docker-compose.yaml:
 
   ```env
 
@@ -210,33 +210,33 @@ Write-heavy or read-heavy?
 - Read-heavy → focus on effective_cache_size and shared_buffers
 - Write-heavy → bump wal_buffers, maintenance_work_mem
 
-1. Check the exact RAM limit in container
+### 1. Check the exact RAM limit in container
  - Run this inside the container:
     ```
     docker exec -it postgres grep MemTotal /proc/meminfo
 
     ```
 
-2. shared_buffers
+### 2. shared_buffers
   - This is memory PostgreSQL uses for caching data pages.
   - Since we have a write-heavy workload with frequent inserts (subscriber) and read-heavy queries on a subset (stock_name), we want shared_buffers to be large enough to keep frequently accessed stock price data cached.
   - Recommended: ~25% of the total RAM.
   - Raising it to over 40 % of RAM is generally not recommended.
 
-3. effective_cache_size
+### 3. effective_cache_size
   - This informs PostgreSQL about the OS cache (filesystem cache).
   - Helps query planner estimate cost of index scans.
   - Set to about 50-75% of RAM to reflect OS cache size.
   - This helps the planner choose index scans for WHERE stock_name = %s which is crucial.
 
-4. maintenance_work_mem
+### 4. maintenance_work_mem
   - Since our workload is mostly reads + inserts, maintenance operations like VACUUM and CREATE INDEX will run.
   - We need sufficient memory here to keep these maintenance tasks efficient.
   - But our queries themselves don’t benefit from it directly.
   - Set moderately high so VACUUM and indexing don’t slow down. 
   - Set to 5–10% of RAM, max ~1 GB.
 
-5. wal_buffers
+### 5. wal_buffers
   - Since we have a write-heavy batch insert from subscriber, WAL buffers matter.
   - Larger wal_buffers improve performance of frequent writes.
   - Setting to 16MB is reasonable for write-heavy systems.
