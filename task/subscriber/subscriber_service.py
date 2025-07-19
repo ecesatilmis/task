@@ -96,9 +96,9 @@ def insert_batch_to_postgres():
 
 def message_handler(msg):
     try:
-        # If channel is coming from Redis and you use decode_responses=False, 
+        # If channel is coming from Redis and we use decode_responses=False, 
         # then channel is a bytes object — not a string.
-        #  So you need to decode it too
+        # So we need to decode it too
         channel = msg['channel'].decode("utf-8") 
         data_str = msg['data'].decode("utf-8")
 

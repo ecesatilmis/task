@@ -14,9 +14,9 @@ This system monitors time-series stock price data both in real-time and historic
 - **`subscriber`** – Listens to Redis Pub/Sub channels for live stock updates. Buffers incoming messages in batches, then inserts them into PostgreSQL. Forwards updates in real-time to clients via Centrifugo.
 - **`backend`** – FastAPI REST API to query stock price history and averages.
 - **`client`** – Frontend that connects to Centrifugo for live updates.
-- **`centrifugo`** – WebSocket server for broadcasting real-time stock data.
+- **`centrifugo(v6.2.3)`** – WebSocket server for broadcasting real-time stock data.
 - **`postgres`** – Stores stock price history.
-- **`vector`** – Collects and stores logs and metrics for observability.
+- **`vector(v0.48.0)`** – Collects and stores logs and metrics for observability.
 - **`nginx`** – Proxies `/api/`, `/connection/websocket`, and serves static frontend.
 - **`grafana`** – Visualizes observability metrics collected from subscriber.
 
@@ -63,7 +63,7 @@ _The diagram above illustrates the target architecture for Step 1. The final sys
 ### Vector.dev + Grafana
 
 - Vector collects logs from the subscriber container.
-- Transforms JSON logs to metrics (e.g., insert latency, errors).
+- Transforms JSON logs to metrics (e.g., insert latency).
 - Stores metrics in PostgreSQL.
 - Grafana reads metrics and visualizes service performance.
 
@@ -76,17 +76,17 @@ _The diagram above illustrates the target architecture for Step 1. The final sys
                                               │  ▲
                                               │  │
                                               ▼  │
-                                          Centrifugo
+                                            Centrifugo
                                               │
-                                          WebSocket
+                                            WebSocket
                                               │
-                                        +-----------+
-                                        |  Frontend |
-                                        +-----------+
+                                            +-----------+
+                                            |  Frontend |
+                                            +-----------+
 
-                  Vector.dev ───▶ PostgreSQL (metrics) ◀── Grafana
+                      Vector.dev ───▶ PostgreSQL (metrics) ◀── Grafana
 
-                            All proxied through: NGINX
+                               All proxied through: NGINX
 
   ```
 
