@@ -19,16 +19,27 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:15
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=stocks
+      - SHARED_BUFFERS=512MB 
+      - EFFECTIVE_CACHE_SIZE=1GB
+      - MAINTENANCE_WORK_MEM=128MB
+      - WAL_BUFFERS=64MB
+      - LISTEN_ADDRESSES=* # Required for Grafana and other containers to reach PostgreSQL.
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgresql.conf.template:/etc/postgresql/postgresql.conf.template:ro
     expose:
       - "5432"
-    
+    command: >
+      sh -c "envsubst < /etc/postgresql/postgresql.conf.template > /tmp/postgresql.conf &&
+            docker-entrypoint.sh postgres -c config_file=/tmp/postgresql.conf"
+
   subscriber:
     container_name: subscriber
     build:

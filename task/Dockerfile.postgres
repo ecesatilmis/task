@@ -1,0 +1,5 @@
+# A custom Dockerfile based on postgres and install gettext (which provides envsubst):
+FROM postgres:15
+
+# Install envsubst (part of gettext)
+RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*

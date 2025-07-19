@@ -1,0 +1,5 @@
+shared_buffers = '${SHARED_BUFFERS}'
+effective_cache_size = '${EFFECTIVE_CACHE_SIZE}'
+maintenance_work_mem = '${MAINTENANCE_WORK_MEM}'
+wal_buffers = '${WAL_BUFFERS}'
+listen_addresses = '${LISTEN_ADDRESSES}'
