@@ -74,28 +74,6 @@ _The diagram above illustrates the target architecture for Step 1. The final sys
 - A custom Docker image is built on top of the official postgres image. This image installs gettext (providing the envsubst command) to replace variables in the template at container start time.
 - Tune PostgreSQL by setting environment variables in the docker-compose.yaml.
 
-## Project Diagram
-
-  ```sql
-  +-------------+        +--------+        +--------------+        +------------+
-  |  Generator  |──────▶ | Redis  |──────▶ |  Subscriber  |──────▶ | PostgreSQL |
-  +-------------+        +--------+        +--------------+        +------------+
-                                              │  ▲
-                                              │  │
-                                              ▼  │
-                                            Centrifugo
-                                              │
-                                            WebSocket
-                                              │
-                                            +-----------+
-                                            |  Frontend |
-                                            +-----------+
-
-                      Vector.dev ───▶ PostgreSQL (metrics) ◀── Grafana
-
-                               All proxied through: NGINX
-
-  ```
 
 ## Setup & Run
 
