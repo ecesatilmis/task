@@ -167,10 +167,14 @@ The PostgreSQL service uses the following environment variables, set in the dock
   POSTGRES_DB=stocks
 
   # Tunable PostgreSQL parameters for performance
-  SHARED_BUFFERS=512MB
-  EFFECTIVE_CACHE_SIZE=1GB
-  MAINTENANCE_WORK_MEM=128MB
-  WAL_BUFFERS=16MB
+  SHARED_BUFFERS=2GB
+  EFFECTIVE_CACHE_SIZE=6GB
+  MAINTENANCE_WORK_MEM=256MB
+  WAL_BUFFERS=64MB
+  CHECKPOINT_TIMEOUT=10min
+  CHECKPOINT_COMPLETION_TARGET=0.9
+  MAX_WAL_SIZE=2GB
+  MIN_WAL_SIZE=1GB
 
   # Required for Grafana and other containers to reach PostgreSQL.
   LISTEN_ADDRESSES=* 
@@ -179,49 +183,69 @@ The PostgreSQL service uses the following environment variables, set in the dock
 
 ## PostgreSQL Performance Tuning
 
-Our application is write-heavy from a background subscriber service that performs batch inserts every 5 seconds, and read-heavy from backend endpoints querying historical stock prices and averages.
+Our application is write-heavy, with a background subscriber service performing batch inserts every 5 seconds, and read-heavy, with backend endpoints querying historical stock prices and averages.
 
-To optimize PostgreSQL for time-series ingestion and querying, the project uses a customized PostgreSQL configuration file postgresql.conf.template applied at container start. The envsubst command replaces the placeholders in the template with the environment variable values at container startup, creating the actual postgresql.conf used by PostgreSQL.
-This approach keeps the PostgreSQL tuning flexible and configurable per environment without rebuilding containers or manual edits.
+To make tuning flexible per environment, we used a postgresql.conf.template file. At container startup, we replace placeholders using envsubst to generate the final postgresql.conf. This approach avoids hardcoding and manual edits.
 
-Write-heavy or read-heavy?
-- Read-heavy → focus on effective_cache_size and shared_buffers
-- Write-heavy → bump wal_buffers, maintenance_work_mem
-
-### 1. Check the exact RAM limit in container
- - Run this inside the container:
-    ```
-    docker exec -it postgres grep MemTotal /proc/meminfo
-
-    ```
-
-### 2. shared_buffers
-  - This is memory PostgreSQL uses for caching data pages.
-  - Since we have a write-heavy workload with frequent inserts (subscriber) and read-heavy queries on a subset (stock_name), we want shared_buffers to be large enough to keep frequently accessed stock price data cached.
-  - Recommended: ~25% of the total RAM.
-  - Raising it to over 40 % of RAM is generally not recommended.
-
-### 3. effective_cache_size
-  - This informs PostgreSQL about the OS cache (filesystem cache).
-  - Helps query planner estimate cost of index scans.
-  - Set to about 50-75% of RAM to reflect OS cache size.
-  - This helps the planner choose index scans for WHERE stock_name = %s which is crucial.
-
-### 4. maintenance_work_mem
-  - Since our workload is mostly reads + inserts, maintenance operations like VACUUM and CREATE INDEX will run.
-  - We need sufficient memory here to keep these maintenance tasks efficient.
-  - But our queries themselves don’t benefit from it directly.
-  - Set moderately high so VACUUM and indexing don’t slow down. 
-  - Set to 5–10% of RAM, max ~1 GB.
-
-### 5. wal_buffers
-  - Since we have a write-heavy batch insert from subscriber, WAL buffers matter.
-  - Larger wal_buffers improve performance of frequent writes.
+### WAL (Write-Ahead Logging) Optimization
+  PostgreSQL first writes every change to a log file (WAL) before applying it to tables. Increases buffering of WAL (write-ahead log), useful for fast bulk writes in write-heavy context. A larger buffer avoids flushing WAL too frequently and improves insert throughput.
   - Setting to 16MB is reasonable for write-heavy systems.
   - For high write workloads, you can increase to 64MB.
 
-We've tuned the following parameters:
-  - shared_buffers=512MB: Acts as PostgreSQL’s internal memory cache. Affects how long data stays in RAM before flushing to disk. Important for absorbing high insert rates. PostgreSQL uses this for caching data pages. A good rule is 25-40% of total RAM. We chose 512MB for our dev machine (2GB RAM).
-  - effective_cache_size=1GB: Informs the query planner how much OS disk cache is likely available. Larger value = planner prefers index scans, which improves performance for the analytics reads. We set this high (50% RAM) to encourage index scans.
-  - maintenance_work_mem=128MB: Speeds up background processes like VACUUM or index creation. Larger = faster maintenance after insert bursts. High enough for our batch inserts.
-  - wal_buffers=64MB: PostgreSQL writes all changes to WAL (Write-Ahead Log) first. A larger buffer avoids flushing WAL too frequently and improves insert throughput. Increases buffering of WAL (write-ahead log), useful for fast bulk writes in write-heavy context.
+    ```conf
+      wal_buffers = 64MB
+      wal_compression = on # Compresses WAL to reduce disk I/O.
+    ```
+
+### Checkpoint Configuration
+  Periodically flush all in-memory changes to disk. Poorly tuned checkpoint intervals can cause sudden disk I/O spikes, slowing down both inserts and queries.
+  - These help keep insert latency predictable and stable.
+
+    ```conf
+      checkpoint_timeout = 10min    # Reduces checkpoint frequency (less disk I/O overhead)
+      checkpoint_completion_target = 0.9 # Spreads out writes more smoothly over time
+      max_wal_size = 2GB # Allows more write activity between checkpoints
+      min_wal_size = 1GB 
+    ```
+
+### Memory & Caching
+  Sufficient memory is needed to execute work efficiently.
+
+  #### 1. Check the exact RAM limit in container
+  - Run this inside the container:
+      ```
+      docker exec -it postgres grep MemTotal /proc/meminfo
+
+      ```
+  #### 2. shared_buffers
+    - This is memory PostgreSQL uses for caching data pages.
+    - Since we have a write-heavy workload with frequent inserts (subscriber) and read-heavy queries on a subset (stock_name), we want shared_buffers to be large enough to keep frequently accessed stock price data cached.
+    - Recommended: ~25% of the total RAM.
+    - Raising it to over 40 % of RAM is generally not recommended.
+    - We chose 2GB for our dev machine (8GB RAM).
+
+  #### 3. effective_cache_size
+    - This informs PostgreSQL about the OS cache (filesystem cache).
+    - Helps query planner estimate cost of index scans.
+    - This helps the planner choose index scans for WHERE stock_name = %s which is crucial.
+    - We set this high (75% RAM) to encourage index scans.
+
+  #### 4. maintenance_work_mem
+    - Since our workload is mostly reads + inserts, maintenance operations like VACUUM and CREATE INDEX will run.
+    - We need sufficient memory here to keep these maintenance tasks efficient.
+    - But our queries themselves don’t benefit from it directly.
+    - Set moderately high so VACUUM and indexing don’t slow down. 
+    - Set to 5–10% of RAM, max ~1 GB.
+    - maintenance_work_mem=256MB. High enough for our batch inserts.
+
+| Parameter                      | Suggested Value | Reason                                                        |
+| ------------------------------ | --------------- | ------------------------------------------------------------- |
+| `shared_buffers`               | `2GB`           | 25% of total RAM; for caching hot data in memory              |
+| `effective_cache_size`         | `6GB`           | Tells planner that 75% of data can be cached by OS/disk cache |
+| `maintenance_work_mem`         | `256MB`         | Speeds up VACUUM, index maintenance                           |
+| `wal_buffers`                  | `64MB`          | Good for batch inserts                                        |
+| `wal_compression`              | `on`            | Reduces WAL size                                              |
+| `checkpoint_timeout`           | `10min`         | Avoids frequent checkpoint spikes                             |
+| `checkpoint_completion_target` | `0.9`           | Spreads checkpoint cost over time                             |
+| `max_wal_size`                 | `2GB`           | Prevents frequent checkpoints                                 |
+| `min_wal_size`                 | `1GB`           | Ensures enough WAL is kept before recycling                   |

@@ -26,10 +26,14 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=stocks
-      - SHARED_BUFFERS=512MB 
-      - EFFECTIVE_CACHE_SIZE=1GB
-      - MAINTENANCE_WORK_MEM=128MB
+      - SHARED_BUFFERS=2GB
+      - EFFECTIVE_CACHE_SIZE=6GB
+      - MAINTENANCE_WORK_MEM=256MB	
       - WAL_BUFFERS=64MB
+      - CHECKPOINT_TIMEOUT=10min
+      - CHECKPOINT_COMPLETION_TARGET=0.9
+      - MAX_WAL_SIZE=2GB
+      - MIN_WAL_SIZE=1GB
       - LISTEN_ADDRESSES=* # Required for Grafana and other containers to reach PostgreSQL.
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
