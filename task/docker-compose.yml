@@ -16,6 +16,8 @@ services:
     image: redis:latest
     ports:
       - "6371:6379"
+    volumes:
+      - redis_data:/data
 
   postgres:
     container_name: postgres
@@ -36,6 +38,7 @@ services:
       - MIN_WAL_SIZE=1GB
       - LISTEN_ADDRESSES=* # Required for Grafana and other containers to reach PostgreSQL.
     volumes:
+      - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./postgresql.conf.template:/etc/postgresql/postgresql.conf.template:ro
     expose:
@@ -122,10 +125,13 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SERVER_ROOT_URL=http://localhost/grafana/
     volumes:
+      - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     expose:
       - "3000"
-
-
+volumes:
+  postgres_data:
+  grafana_data:
+  redis_data:
