@@ -73,7 +73,7 @@ def insert_batch_to_postgres():
             conn.close()
             elapsed = time.time() - start
 
-            # Successful insert log (all fields present)
+            # Successful insert log 
             print(json.dumps({
                 "timestamp": datetime.now().isoformat() + "Z",
                 "metric": "insert_latency",
@@ -84,7 +84,7 @@ def insert_batch_to_postgres():
             }), file=sys.stdout)
 
         except Exception as e:
-            # Error log (all fields present)
+            # Error log 
             print(json.dumps({
                 "timestamp": datetime.now().isoformat() + "Z",
                 "metric": "",

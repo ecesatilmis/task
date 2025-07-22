@@ -114,16 +114,11 @@ This will build and start all containers.
     - Username: admin
     - Password: admin
 
-## Observability
-
-The subscriber emits structured logs (JSON) with the latency (duration) of bulk inserts into PostgreSQL metrics, collected by vector and stored in PostgreSQL for analysis. Grafana dashboards visualize insert times.
-
 ## API Endpoints
 
 1.  `GET /api/prices/{stock_name}`: Retrieves all price points for a given stock between a `start_time` and `end_time` query parameter.
 
 2.  `GET /api/average/{stock_name}`: Calculates and returns the average price for a given stock between a `start_time` and `end_time`.
-
 
 ## Database Schema
 
@@ -146,6 +141,9 @@ The subscriber emits structured logs (JSON) with the latency (duration) of bulk 
     unit text
   );
   ```
+## Observability
+
+The subscriber emits structured logs (JSON) with the latency (duration) of bulk inserts into PostgreSQL metrics, collected by vector and stored in PostgreSQL for analysis. Grafana dashboards visualize insert times.
 
 ## Notes
 
