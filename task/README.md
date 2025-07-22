@@ -216,25 +216,25 @@ To make tuning flexible per environment, we used a postgresql.conf.template file
 
       ```
   #### 2. shared_buffers
-    - This is memory PostgreSQL uses for caching data pages.
-    - Since we have a write-heavy workload with frequent inserts (subscriber) and read-heavy queries on a subset (stock_name), we want shared_buffers to be large enough to keep frequently accessed stock price data cached.
-    - Recommended: ~25% of the total RAM.
-    - Raising it to over 40 % of RAM is generally not recommended.
-    - We chose 2GB for our dev machine (8GB RAM).
+  - This is memory PostgreSQL uses for caching data pages.
+  - Since we have a write-heavy workload with frequent inserts (subscriber) and read-heavy queries on a subset (stock_name), we want shared_buffers to be large enough to keep frequently accessed stock price data cached.
+  - Recommended: ~25% of the total RAM.
+  - Raising it to over 40 % of RAM is generally not recommended.
+  - We chose 2GB for our dev machine (8GB RAM).
 
   #### 3. effective_cache_size
-    - This informs PostgreSQL about the OS cache (filesystem cache).
-    - Helps query planner estimate cost of index scans.
-    - This helps the planner choose index scans for WHERE stock_name = %s which is crucial.
-    - We set this high (75% RAM) to encourage index scans.
+  - This informs PostgreSQL about the OS cache (filesystem cache).
+  - Helps query planner estimate cost of index scans.
+  - This helps the planner choose index scans for WHERE stock_name = %s which is crucial.
+  - We set this high (75% RAM) to encourage index scans.
 
   #### 4. maintenance_work_mem
-    - Since our workload is mostly reads + inserts, maintenance operations like VACUUM and CREATE INDEX will run.
-    - We need sufficient memory here to keep these maintenance tasks efficient.
-    - But our queries themselves don’t benefit from it directly.
-    - Set moderately high so VACUUM and indexing don’t slow down. 
-    - Set to 5–10% of RAM, max ~1 GB.
-    - maintenance_work_mem=256MB. High enough for our batch inserts.
+  - Since our workload is mostly reads + inserts, maintenance operations like VACUUM and CREATE INDEX will run.
+  - We need sufficient memory here to keep these maintenance tasks efficient.
+  - But our queries themselves don’t benefit from it directly.
+  - Set moderately high so VACUUM and indexing don’t slow down. 
+  - Set to 5–10% of RAM, max ~1 GB.
+  - maintenance_work_mem=256MB. High enough for our batch inserts.
 
 | Parameter                      | Suggested Value | Reason                                                        |
 | ------------------------------ | --------------- | ------------------------------------------------------------- |
